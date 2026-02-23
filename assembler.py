@@ -13,6 +13,7 @@ INSTRUCTIONS_SET={
     "JEQ":  (11, 1),
     "JLT":  (12, 1),
     "JGT":  (13, 1),
+    "POP":  (14, 1),
 }
 def label(donnee):
     adresse=0
@@ -45,3 +46,4 @@ def decouper(donnee):
                     except:
                         l.append(dico_label[arg])
     return l
+
