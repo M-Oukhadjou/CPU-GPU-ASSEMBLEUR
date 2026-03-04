@@ -1,4 +1,3 @@
-
 INSTRUCTIONS_SET={
     "ADD":  (1, 3),
     "SUB":  (2, 3),
@@ -14,6 +13,12 @@ INSTRUCTIONS_SET={
     "JLT":  (12, 1),
     "JGT":  (13, 1),
     "POP":  (14, 1),
+    "LOADVR": (15, 1),
+    "GPUON" : (16, 0),
+    "GPUOP": (17, 1),
+    "GPULIM": (18,3),
+    "GPUSTART": (19,1),
+    "WAIT": (20, 1)
 }
 def label(donnee):
     adresse=0
@@ -46,4 +51,6 @@ def decouper(donnee):
                     except:
                         l.append(dico_label[arg])
     return l
+
+
 
