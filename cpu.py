@@ -120,7 +120,7 @@ def executer(affichage):
                 if code_reg not in (0,1,2):
                     affichage.insert("end", "Registre invalide pour POP\n")
                     break
-                if registres["SP"]<=900:
+                if registres["SP"]<=800:
                     affichage.insert("end", "Stack underflow\n")
                     sys.exit()
                 registre_nom=nom[code_reg]
