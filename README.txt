@@ -10,6 +10,15 @@ d'écrire, compiler et observer l'exécution du code.
 Le projet est né après des recherches sur l'architecture d'un PC, j'ai voulu voir si j'étais capable
 d'en créer un moi-même.
 
+LIEN UTILE :
+
+Le projet nécessite au moins la version 3.11 de Python en raison de l'utilisation des match/case. 
+Pour remédier à toute erreur liée à cela, voici ci-dessous un lien pour télécharger une version récente 
+de Python ou d'EduPython :
+
+Python : https://www.python.org/downloads/
+EduPython : https://edupython.tuxfamily.org/
+
 ARCHITECTURE DU PROJET:
 
 cpu_assembleur/
