@@ -246,7 +246,6 @@ INTERFACE GRAPHIQUE
 LANCEMENT
 
     -python main.py
-    -Python 3.13 (pour la syntaxe match/case) et Tkinter (inclus par défaut).
 
 
 
