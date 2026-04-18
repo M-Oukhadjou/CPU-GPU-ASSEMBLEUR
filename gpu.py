@@ -1,4 +1,7 @@
-vram=[0]*256
+from PyQt6.QtGui import QPainter,QPixmap
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication
+vram = [0]*1024
 fenetre_ref=None
 ecran_ref=None
 
@@ -32,19 +35,28 @@ def kernel(id):
             vram[id]=1
 
 def dessine_ecran():
-    if ecran_ref is None: return
-    ecran_ref.delete("all")
+    if ecran_ref.pixmap() is None: 
+        return
+    pixmap=ecran_ref.pixmap()
+    painter=QPainter(pixmap)
+    taille=20
     for i in range(len(vram)):
-        x=i % 16
-        y=i // 16
-        taille=20
+        x=i%16
+        y=i//16
         x1=x*taille
         y1=y*taille
-        x2=x1+taille
-        y2=y1+taille
-        couleur="white" if vram[i]!=0 else "black"
-        ecran_ref.create_rectangle(x1, y1, x2, y2, fill=couleur,outline=couleur)
+        couleur=Qt.GlobalColor.white if vram[i] != 0 else Qt.GlobalColor.black
+        painter.fillRect(x1, y1, taille, taille, couleur)
+    painter.end()
+    ecran_ref.setPixmap(pixmap)
 
+def effacer_canvas():
+    if ecran_ref.pixmap():
+        pixmap=QPixmap(320, 320)
+        pixmap.fill(Qt.GlobalColor.black)
+        ecran_ref.setPixmap(pixmap)
+        global vram
+        vram=[0]*1024
 
 def dispatcher():
     from cpu import registres
@@ -57,5 +69,4 @@ def dispatcher():
         dessine_ecran()
         registres["GPU_STATE"]=0
         if fenetre_ref:
-            fenetre_ref.update_idletasks()
-            fenetre_ref.update()
+            QApplication.processEvents()

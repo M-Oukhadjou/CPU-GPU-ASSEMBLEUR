@@ -24,40 +24,39 @@ def executer(affichage):
                 d,s1,s2=ram[registres["PC"]],ram[registres["PC"]+1],ram[registres["PC"]+2]
                 registres["PC"]+=3
                 registres[nom[d]]=registres[nom[s1]]+registres[nom[s2]]
-                affichage.insert("end", f"ADD:{nom[d]}={nom[s1]}+{nom[s2]} ({registres[nom[d]]})\n")
+                affichage.append(f"ADD:{nom[d]}={nom[s1]}+{nom[s2]} ({registres[nom[d]]})")
             case(2):#soustraction
                 d,s1,s2=ram[registres["PC"]],ram[registres["PC"]+1],ram[registres["PC"]+2]
                 registres["PC"]+=3
                 registres[nom[d]]=registres[nom[s1]]-registres[nom[s2]]
-                affichage.insert("end", f"SUB:{nom[d]}={nom[s1]}-{nom[s2]} ({registres[nom[d]]})\n")
+                affichage.append(f"SUB:{nom[d]}={nom[s1]}-{nom[s2]} ({registres[nom[d]]})")
             case(3):#multiplication
                 d,s1,s2=ram[registres["PC"]],ram[registres["PC"]+1],ram[registres["PC"]+2]
                 registres["PC"]+=3
                 registres[nom[d]]=registres[nom[s1]]*registres[nom[s2]]
-                affichage.insert("end", f"MULT:{nom[d]}={nom[s1]}*{nom[s2]} ({registres[nom[d]]})\n")
+                affichage.append(f"MULT:{nom[d]}={nom[s1]}*{nom[s2]} ({registres[nom[d]]})")
             case(4):#division
                 d,s1,s2=ram[registres["PC"]],ram[registres["PC"]+1],ram[registres["PC"]+2]
                 registres["PC"]+=3
                 if registres[nom[s2]]==0:
-                    affichage.insert("end","ERR: Div par zero\n")
+                    affichage.append("ERR: Div par zero")
                     sys.exit()
                 registres[nom[d]]=registres[nom[s1]]//registres[nom[s2]]
-                affichage.insert("end",f"DIV: {nom[d]}={nom[s1]}/{nom[s2]}({registres[nom[d]]})\n")
-            case(5):#stock
+                affichage.append("end",f"DIV: {nom[d]}={nom[s1]}/{nom[s2]}({registres[nom[d]]})")
+            case(5):#push
                 code_reg = ram[registres["PC"]]
                 registres["PC"]+=1
                 if code_reg not in (0,1,2):
-                    affichage.insert("end", "Registre invalide pour STK\n")
+                    affichage.append("Registre invalide pour STK")
                     break
                 if registres["SP"]>=len(ram):
-                    affichage.insert("end", "Stack overflow\n")
+                    affichage.append("Stack overflow")
                     sys.exit()
                 registres["SP"]+=1
                 registre_nom=nom[code_reg]
                 valeur=registres[registre_nom]
                 ram[registres["SP"]]=valeur
-                affichage.insert("end",
-                    f"STK : {registre_nom} ({valeur}) enregistré à l'adresse {registres['SP']}\n")
+                affichage.append(f"STK : {registre_nom} ({valeur}) enregistré à l'adresse {registres['SP']}")
             case(6):#load
                 valeur=ram[registres["PC"]]
                 code_reg=ram[registres["PC"]+1]
@@ -68,7 +67,7 @@ def executer(affichage):
                     registres["B"]=valeur
                 elif code_reg==2:
                     registres["C"]=valeur
-                affichage.insert("end", f"LOAD : {valeur} chargé dans Reg {nom[code_reg]}\n")
+                affichage.append(f"LOAD : {valeur} chargé dans Reg {nom[code_reg]}")
             case(7):#jump
                 destination=ram[registres["PC"]]
                 registres["PC"]+=1
@@ -79,7 +78,7 @@ def executer(affichage):
                 if registres["A"]==0:
                     registres["PC"]=adresse
             case(9):#exit
-                affichage.insert("end", ">>> Fin du programme.\n")
+                affichage.append(">>> Fin du programme.")
                 break
             case(10):#comparaison
                 code_reg1=ram[registres["PC"]]
@@ -118,25 +117,24 @@ def executer(affichage):
                 code_reg=ram[registres["PC"]]
                 registres["PC"]+=1
                 if code_reg not in (0,1,2):
-                    affichage.insert("end", "Registre invalide pour POP\n")
+                    affichage.append("end", "Registre invalide pour POP")
                     break
                 if registres["SP"]<=800:
-                    affichage.insert("end", "Stack underflow\n")
+                    affichage.append("end", "Stack underflow")
                     sys.exit()
                 registre_nom=nom[code_reg]
                 valeur=ram[registres["SP"]]
                 registres["SP"]-=1
                 registres[registre_nom]=valeur
-                affichage.insert("end",
-                    f"POP : ({valeur}) enregistré dans le registre {registre_nom}\n")
+                affichage.append(f"POP : ({valeur}) enregistré dans le registre {registre_nom}")
             case(15):#LOADVR
                 nombre_a_copier=ram[registres["PC"]]
                 registres["PC"]+=1
                 for i in range(nombre_a_copier):
                     source_addr=registres["SP"] - i
-                    if source_addr>800 and i<256:
+                    if source_addr>800 and i<1024:
                         vram[i]=ram[source_addr]
-                affichage.insert("end", f"LOADVR : {nombre_a_copier} valeurs copiées vers VRAM\n")
+                affichage.append(f"LOADVR : {nombre_a_copier} valeurs copiées vers VRAM")
             case(16):#GPUON
                 registres["GPU_STATE"]=1
                 dispatcher()
@@ -158,27 +156,28 @@ def executer(affichage):
                 import time
                 time.sleep(ms / 1000)
                 from gpu import fenetre_ref
+                from PyQt6.QtWidgets import QApplication
                 if fenetre_ref:
-                    fenetre_ref.update()
+                    QApplication.processEvents()
             case(21):#CALL
                 adresse_actuelle=registres["PC"]
                 registres["SP"]+=1
                 ram[registres["SP"]]=adresse_actuelle
                 registres["PC"]=ram[registres["PC"]]
-                affichage.insert("end", f"CALL : la fonction à l'adresse {registres['PC']} est executer\n")
+                affichage.append(f"CALL : la fonction à l'adresse {registres['PC']} est exécutée")
             case(22):#RET
                 if registres["SP"]>800:
                     adresse_retour=ram[registres["SP"]]
                     registres["SP"]-=1
                     registres["PC"]=adresse_retour
-                    affichage.insert("end", f"RET : retour à l'adresse {registres['PC']}\n")
+                    affichage.append(f"RET : retour à l'adresse {registres['PC']}")
                 else:
-                    affichage.insert("end", "Stackunderflow\n")
-            case(23):#MOV
+                    affichage.append("Stackunderflow")
+            case(23):#mov
                 source,desti=ram[registres["PC"]],ram[registres["PC"]+1]
                 registres["PC"]+=2
                 registres[nom[desti]]=registres[nom[source]]
-                affichage.insert("end", f"MOV : registre{registres[nom[source]]} enregistrer dans le registre {registres[nom[desti]]}\n")
+                affichage.append(f"MOV : registre{registres[nom[source]]} enregistrer dans le registre {registres[nom[desti]]}")
             case(24):#STORE
                 registre_a_store=ram[registres["PC"]]
                 registres["PC"]+=1
@@ -186,29 +185,28 @@ def executer(affichage):
                 registres["PC"]+=1
                 if adresse_d_enregistrement < len(ram) and registre_a_store < len(nom) and adresse_d_enregistrement >= 0:
                     ram[adresse_d_enregistrement]=registres[nom[registre_a_store]]
-                    affichage.insert("end", f"STORE : {registres[nom[registre_a_store]]} enregistrer à l'adresse {adresse_d_enregistrement}\n")
+                    affichage.append(f"STORE : {registres[nom[registre_a_store]]} enregistrer à l'adresse {adresse_d_enregistrement}")
                 elif registre_a_store >= len(nom):
-                    affichage.insert("end", "Registre invalide\n")
+                    affichage.append("Registre invalide")
                 elif adresse_d_enregistrement >= len(ram) or adresse_d_enregistrement < 0:
-                    affichage.insert("end", "Adresse invalide\n")
+                    affichage.append("Adresse invalide")
             case(25):#STOREIND
                 source,desti=ram[registres["PC"]],ram[registres["PC"]+1]
                 registres["PC"]+=2
                 if source < len(nom) and desti < len(nom):
                     ram[registres[nom[desti]]]=registres[nom[source]]
-                    affichage.insert("end", f"STORE_INDIRECT : {registres[nom[source]]} enregistrer dans l'adresse {registres[nom[desti]]}\n")
+                    affichage.append(f"STORE_INDIRECT : {registres[nom[source]]} enregistrer dans l'adresse {registres[nom[desti]]}")
                 elif source >= len(nom) or desti >= len(nom):
-                    affichage.insert("end", "Registre invalide\n")
-            case(26):#PEEK
+                    affichage.append("Registre invalide")
+            case(26):#peek
                 source,desti=ram[registres["PC"]],ram[registres["PC"]+1]
                 registres["PC"]+=2
                 if source >= len(nom) or desti >= len(nom):
-                    affichage.insert("end", "Registre invalide\n")
+                    affichage.append("Registre invalide")
                 elif registres[nom[source]]<0 or registres[nom[source]]> len(ram):
-                    affichage.insert("end", "Adresse invalide\n")
+                    affichage.append("Adresse invalide")
                 else:
                     registres[nom[desti]]=ram[registres[nom[source]]]
-                    affichage.insert("end", f"PEEK : Valeur enregistrer dans l'adresse {registres[nom[source]]} enregistrer dans le registre {nom[desti]}\n")
-        affichage.see("end")
+                    affichage.append(f"PEEK : Valeur enregistrer dans l'adresse {registres[nom[source]]} enregistrer dans le registre {nom[desti]}")
 
 

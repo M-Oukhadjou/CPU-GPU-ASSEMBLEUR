@@ -25,7 +25,7 @@ cpu_assembleur/
     assembler.py = Traduction du code assembleur en "langage machine"
     cpu.py       = Exécution des instructions, gestion des registres et de la RAM
     gpu.py       = GPU virtuelle avec VRAM et kernels simuler
-    main.py      =  Interface graphique Tkinter
+    main.py      = Interface graphique PyQt6
 
 Registres disponibles :
     A, B, C    : registres généraux
@@ -60,6 +60,8 @@ Comparaison et sauts :
 Pile :
     STK registre                 Empile la valeur d'un registre
     POP registre                 Dépile une valeur dans un registre
+    CALL addr(label utilisable)  Empile l'adresse de retour actuelle et saute à l'adresse de la fonction
+    RET                          Dépile l'adresse de retour et replace le registre PC à cette position pour quitter la fonction.
 
 GPU :
     GPUOP   op para         Définit l'opération GPU et son paramètre
@@ -67,15 +69,20 @@ GPU :
     GPUSTART addr           Adresse de départ dans la VRAM
     GPUON                   Lance le dispatcher GPU
 
+Mémoire :
+    STORE  reg addr         Enregistre la valeur d'un registre à une adresse mémoire spécifique.
+    STOREIND  src dest      Enregistre la valeur d'un registre à l'adresse contenue dans un autre registre.
+    PEEK      src dest      Lit la valeur située à une adresse mémoire (contenue dans un registre) et la stocke dans un registre de destination.
+
 Divers :
     WAIT ms                 Pause en millisecondes
     EXIT                    Arrêt du programme
+    MOV src dest            Copie le contenu du registre src vers le registre dest
 
 
 EXEMPLES DE PROGRAMMES
 
 Suite de Fibonacci :
-
 LOAD 600 0
 LOAD 10 1
 LOAD 1 2
@@ -112,7 +119,7 @@ calculer_suivant:
 Résultat : 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89...
 
 Animation coeur (GPU) :
-Dessine un coeur sur l'écran 16x16 grâce
+Dessine un coeur qui bat sur l'écran 16x16 grâce
 aux instructions GPU et à WAIT.
 
 GPUOP 3 0
@@ -121,7 +128,6 @@ GPUSTART 0
 GPUON
 GPUOP 9 0
 GPULIM 1 0 0
-boucle:
 GPUOP 3 0
 GPULIM 256 0 0
 GPUSTART 0
@@ -240,20 +246,21 @@ GPULIM 256 0 0
 GPUSTART 0
 GPUON
 WAIT 400
-JUMP boucle
+EXIT
 
 
 INTERFACE GRAPHIQUE
 
     - Zone d'édition pour écrire le code assembleur
     - Bouton COMPILER pour lancer l'exécution
+    - Bouton EFFACER ECRAN pour vider le canva
     - Terminal affichant chaque instruction exécutée pas à pas
     - Ecran 16x16 pour visualiser la VRAM en temps réel
 
 
 LANCEMENT
 
-    -python main.py
+    -python main.py(assurez vous que PyQt6 est installé pip install PyQt6)
 
 
 
