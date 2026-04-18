@@ -24,7 +24,7 @@ layout_principal=QHBoxLayout()
 layout_gauche=QVBoxLayout()
 
 fenetre=QWidget()
-fenetre.setWindowTitle("Ma première App")
+fenetre.setWindowTitle("IDE")
 fenetre.resize(1200, 700)
 
 bouton=QPushButton("COMPILER")
