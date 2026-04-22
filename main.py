@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt,QTimer
 from assembleur import*
 from ordinateur_poo import*
 
-ordi=Systeme()
+ordi=Systeme("gpu_1")
 
 def simulation():
     console.clear()

@@ -15,7 +15,7 @@ INSTRUCTIONS_SET={
     "POP":  (14, 1),
     "LOADVR": (15, 1),
     "GPUON" : (16, 0),
-    "GPUOP": (17, 1),
+    "GPUOP": (17, 2),
     "GPULIM": (18, 3),
     "GPUSTART": (19, 1),
     "WAIT": (20, 1),

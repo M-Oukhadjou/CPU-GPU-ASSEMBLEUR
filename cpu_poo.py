@@ -1,14 +1,12 @@
-import sys
 from PyQt6.QtWidgets import QApplication
-import time
 
 class cpu:
     
-    def __init__(self,instance_gpu):
+    def __init__(self):
         self.ram=[0]*1024
         self.registres={"A": 0, "B": 0, "C":0,"PC": 0,"SP": 800,"FLAGS":0}
         self.nom=["A","B","C"]
-        self.gpu=instance_gpu
+        self.notifier_systeme=None
         self.running=True
 
     def add(self,val1,val2):
@@ -76,32 +74,51 @@ class cpu:
         affichage.append(f"POP : ({valeur}) enregistré dans le registre {registre_nom}")
     
     def loadvr(self,nb,affichage):
+        self.ram[797]=1
+        self.ram[798]=100 
+        self.ram[799]=0
+        self.notifier_systeme(affichage)
         for i in range(nb):
             source_addr=self.registres["SP"]-i
-            if source_addr>800 and i<1024:
-                self.gpu.vram[i]=self.ram[source_addr]
-        affichage.append(f"LOADVR : {nb} valeurs copiées vers VRAM")
+            if source_addr < 1024:
+                valeur=self.ram[source_addr]
+                self.ram[797]=1
+                self.ram[798]=15
+                self.ram[799]=valeur
+                self.notifier_systeme(affichage)
 
-    def gpuon(self):
-        self.gpu.registres_gpu["GPU_STATE"]=1
-        self.gpu.dispatcher()
+    def gpuon(self,affichage):
+        self.ram[797]=1
+        self.ram[798]=16
+        self.ram[799]=1
+        self.notifier_systeme(affichage)
     
-    def gpuop(self,op,para):
-        self.gpu.registres_gpu["GPU_OP"]=op
-        self.gpu.registres_gpu["GPU_PARA"]=para
+    def gpuop(self, op, para, affichage):
+        self.ram[796]=para
+        self.ram[797]=1
+        self.ram[798]=17
+        self.ram[799]=op
+        self.notifier_systeme(affichage)
 
-    def gpulim(self,lim,off_b,off_c):
-        self.gpu.registres_gpu["GPU_LIMIT"]=lim
-        self.gpu.registres_gpu["GPU_OFFSET_B"]=off_b
-        self.gpu.registres_gpu["GPU_OFFSET_C"]=off_c
-    
-    def gpustart(self,start):
-        self.gpu.registres_gpu["GPU_START"]=start
+    def gpustart(self,start,affichage):
+        self.ram[797]=1
+        self.ram[798]=19
+        self.ram[799]=start
+        self.notifier_systeme(affichage)
 
-    def wait(self,temps):
-        time.sleep(temps/1000)
-        if self.gpu.fenetre_ref:
-            QApplication.processEvents()
+    def gpulim(self,lim,off_b,off_c,affichage):
+        ordres=[(18, lim),(51, off_b),(52, off_c)]
+        for code, valeur in ordres:
+            self.ram[797]=1
+            self.ram[798]=code
+            self.ram[799]=valeur
+            self.notifier_systeme(affichage)
+
+    def wait(self,temps,affichage):
+        self.ram[797]=1
+        self.ram[798]=20
+        self.ram[799]=temps
+        self.notifier_systeme(affichage)
 
     def call(self,adresse_actuelle,affichage):
         self.ram[self.registres["SP"]]=adresse_actuelle
@@ -132,11 +149,14 @@ class cpu:
 
     def executer(self,affichage):
         self.running=True
-        while self.registres["PC"] < len(self.ram):
+        while self.running and self.registres["PC"] < len(self.ram):
             instruction_actuelle=self.registres["PC"]
             IR=self.ram[instruction_actuelle]
             self.registres["PC"]+=1
             match(IR):
+                case(0):
+                    affichage.append("FIN RAM atteinte")
+                    break
                 case(1):
                     d, s1, s2 = self.ram[self.registres["PC"]], self.ram[self.registres["PC"]+1], self.ram[self.registres["PC"]+2]
                     self.registres["PC"]+=3
@@ -219,26 +239,26 @@ class cpu:
                     self.registres["PC"]+=1
                     self.loadvr(nombre_a_copier,affichage)
                 case(16):
-                    self.gpuon()
+                    self.gpuon(affichage)
                 case(17):
                     operation_gpu=self.ram[self.registres["PC"]]
                     parametre_gpu=self.ram[self.registres["PC"]+1]
                     self.registres["PC"]+=2
-                    self.gpuop(operation_gpu,parametre_gpu)
+                    self.gpuop(operation_gpu,parametre_gpu,affichage)
                 case(18):
                     gpu_limit=self.ram[self.registres["PC"]]
                     gpu_offset_b=self.ram[self.registres["PC"]+1]
                     gpu_offset_c=self.ram[self.registres["PC"]+2]
                     self.registres["PC"]+=3
-                    self.gpulim(gpu_limit,gpu_offset_b,gpu_offset_c)
+                    self.gpulim(gpu_limit,gpu_offset_b,gpu_offset_c,affichage)
                 case(19):
                     start=self.ram[self.registres["PC"]]
                     self.registres["PC"]+=1
-                    self.gpustart(start)
+                    self.gpustart(start,affichage)
                 case(20):
                     ms=self.ram[self.registres["PC"]]
                     self.registres["PC"]+=1
-                    self.wait(ms)
+                    self.wait(ms,affichage)
                 case(21):
                     adresse_actuelle=self.registres["PC"]
                     self.registres["SP"]+=1
@@ -251,7 +271,7 @@ class cpu:
                 case(23):
                     source,desti=self.ram[self.registres["PC"]],self.ram[self.registres["PC"]+1]
                     self.registres["PC"]+=2
-                    self.mov(source,desti,affichage)
+                    self.mov(affichage,source,desti)
                 case(24):
                     registre_a_store=self.ram[self.registres["PC"]]
                     self.registres["PC"]+=1

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QApplication
 class gpu:
     def __init__(self):
         self.vram=[0]*1024
-        self.registres_gpu={"GPU_OP":0,"GPU_PARA":0,"GPU_LIMIT":0,"GPU_OFFSET_B":0,"GPU_OFFSET_C":0,"GPU_STATE":0,"GPU_START":0}
+        self.registres_gpu={"GPU_OP":0,"GPU_PARA":0,"GPU_LIMIT":0,"GPU_OFFSET_B":0,"GPU_OFFSET_C":0,"GPU_STATE":0,"GPU_START":0,"VRAM_INDEX":0}
         self.fenetre_ref=None
         self.ecran_ref=None
     
@@ -76,3 +76,17 @@ class gpu:
             self.registres_gpu["GPU_STATE"]=0
             if self.fenetre_ref:
                 QApplication.processEvents()
+    
+
+    def recevoir(self,instruction,donnee):
+        if instruction=="VRAM_DATA":
+            index=self.registres_gpu["VRAM_INDEX"]
+            if index<1024:
+                self.vram[index]=donnee
+                self.registres_gpu["VRAM_INDEX"]+=1
+        elif instruction=="LOADVR":
+            self.registres_gpu["VRAM_INDEX"]=0
+        elif instruction in self.registres_gpu:
+            self.registres_gpu[instruction]=donnee
+        if instruction=="GPU_STATE" and donnee==1:
+            self.dispatcher()
